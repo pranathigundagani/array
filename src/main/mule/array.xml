@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d9320f0e-51ba-472d-bcc1-2c4cb857d725" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="mapobject-task1" doc:id="0d5f3f63-0900-447a-ad2a-7a27fa86e969" initialState="stopped">
+		<http:listener doc:name="mapObjectXml" doc:id="890b307a-b4b1-43a6-b111-6a9b59aa3d90" config-ref="HTTP_Listener_config" path="/mapobject"/>
+		<ee:transform doc:name="Transform Message" doc:id="da579fe1-e2e0-4375-ae6f-3dd23a2b2fa4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+prices: payload.prices mapObject (value, key) -> {
+        (key): (value + 5) as Number
+}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="mapobject-task2" doc:id="6f093f57-e923-4023-aea5-b26f96c50b4c" initialState="stopped">
+		<http:listener doc:name="Listener" doc:id="71b0112e-d9b8-4790-94d7-4b9b14f0220f" config-ref="HTTP_Listener_config" path="/mapObject2"/>
+		<ee:transform doc:name="Transform Message" doc:id="fa95bd12-db0a-472b-ae3c-492eae69c900" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload mapObject(value,key,index)->element:{
+	
+  index:index,
+  key:key,
+  value:value
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="groupbytask1" doc:id="568a09c3-1603-4772-ad7d-b68c57e478c8" initialState="stopped">
+		<http:listener doc:name="Listener" doc:id="e5133cee-0b0a-4792-b2f0-bbfbbd133167" config-ref="HTTP_Listener_config" path="/groupby"/>
+		<ee:transform doc:name="Transform Message" doc:id="1a7b5c03-cd7a-43bf-a2d7-b31389d5e0ea" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload groupBy $.language]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
